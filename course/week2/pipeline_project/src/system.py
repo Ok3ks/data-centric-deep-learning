@@ -42,7 +42,7 @@ class MNISTDataModule(pl.LightningDataModule):
     # Keep 80% of the `train_dataset` as training and use the
     # rest as a dev set. 
     dev_size = int(len(train_dataset) * 0.2)
-    indices = torch.randperm(len(train_dataset)).tolist()
+    indices = torch.randperm(len(train_dataset)).tolist() #(personal q) why not shuffle directly 
     _train_dataset = Subset(train_dataset, indices[:-dev_size])
     dev_dataset = Subset(train_dataset, indices[-dev_size:])
     train_dataset = _train_dataset  # overwrite object

@@ -162,8 +162,9 @@ class MNISTDirectionalityTest(BaseTest):
       # 
       # Pseudocode:
       # --
-      # batch_metric = ...
-      # 
+
+      batch_metric = len(preds_transformed == preds_raw) / len(preds_transformed)
+      
       # Type:
       # --
       # batch_metric: float (not torch.Tensor!)

@@ -101,14 +101,17 @@ class DigitClassifierFlow(FlowSpec):
     # 
     # HINT: the `callback` object has a property `best_model_score`
     #       that make come in handy. 
-    # 
+    for input in inputs:
+      scores.append(input.callback.best_model_score)
+   
     # Then, compute the index of the model and store it in `best_index`.
     # 
     # Pseudocode:
     # --
     # aggregate scores using `inputs`
-    # best_index = ...
-    #
+    
+    best_index = scores.index(min(scores))
+
     # Type:
     # --
     # scores: List[float] 

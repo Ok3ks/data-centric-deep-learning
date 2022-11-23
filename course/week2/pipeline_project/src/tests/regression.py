@@ -61,15 +61,17 @@ def build_regression_test(system, loader):
     batch_is_correct = []
     batch_loss = []
     # ================================
+
     # FILL ME OUT
-    # 
+    batch_is_correct.append([1 if pred == label else 0 for (pred, label) in zip(preds, labels)])
+    batch_loss.append(F.cross_entropy(logits, labels, reduction= 'none').numpy().tolist())
+
     # Your task is to add elements to `batch_is_correct` and `batch_loss`. 
     # 
     # For the first one, we want a list of booleans, one for each example. 
     # Each value represents whether the model made a correct prediction (1 
     # if the model was right and 0 if the model was wrong). It will likely 
     # look something like:
-    #
     #   batch_is_correct = [1, 1, 0, 1, 0, 0, ...]
     # 
     # For the second one, compute the loss between the predicted logit and 
@@ -115,6 +117,7 @@ def build_regression_test(system, loader):
 
   images = []
   labels = []
+
   # Use `loader.dataset.__getitem__` to fetch the images and labels for 
   # each index in `indices`.
   for index in indices:
