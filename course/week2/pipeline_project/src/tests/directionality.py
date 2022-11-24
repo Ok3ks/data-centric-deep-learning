@@ -99,6 +99,7 @@ class MNISTDirectionalityTest(BaseTest):
       transforms.ToTensor(),
       lambda x: torch.from_numpy(random_noise(x)).float(),
     ])
+    
     rotate_transform = transforms.Compose([
       transforms.RandomRotation(45),  # max rotation is -45 -> 45 deg
       transforms.ToTensor(),
@@ -162,8 +163,8 @@ class MNISTDirectionalityTest(BaseTest):
       # 
       # Pseudocode:
       # --
-
-      batch_metric = len(preds_transformed == preds_raw) / len(preds_transformed)
+#
+      batch_metric =  len([i for i, j in zip(preds_raw, preds_transformed) if i == j]) /len(preds_raw)
       
       # Type:
       # --

@@ -22,13 +22,11 @@ def get_best_shift(img):
 
   return shiftx, shifty
 
-
 def shift(img, sx, sy):
   rows, cols = img.shape
   M = np.float32([[1, 0, sx], [0, 1, sy]])
   shifted = cv2.warpAffine(img, M, (cols, rows))
   return shifted
-
 
 def clean_photo_image(path, out_dir):
   """The photo we have taken by hand is quite different than a MNIST image.
@@ -51,12 +49,15 @@ def clean_photo_image(path, out_dir):
   """
   # load the raw image
   gray = cv2.imread(path, 0)
+  
   # rescale it
   gray = cv2.resize(255 - gray, (28, 28))
+  
   # better black and white version
   (thresh, gray) = cv2.threshold(gray, 128, 255, 
     cv2.THRESH_BINARY | cv2.THRESH_OTSU)
   
+
   # remove all rows and columns at the sides of images that are 
   # completely black.
   while np.sum(gray[0]) == 0:
@@ -76,6 +77,7 @@ def clean_photo_image(path, out_dir):
   # MNIST images are normalized to fit in a 20x20 pixel box and
   # are centered in a 28x28 image using a center of mass. It is 
   # important we do this same thing!
+  
   if rows > cols:
     factor = 20.0 / rows
     rows = 20
