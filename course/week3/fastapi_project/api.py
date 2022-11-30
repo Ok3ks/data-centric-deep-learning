@@ -24,8 +24,8 @@ MODEL_PATH: str = join(Path(__file__).parent, "ckpts/deploy.ckpt")
 
 class InferenceInput(BaseModel):
   r"""Input values for model inference. We will expect the image to be passed
-  to us as a URL that we download.
-  """
+  to us as a URL that we download """
+  
   image_url: str = Field(..., 
     example = 'https://machinelearningmastery.com/wp-content/uploads/2019/02/sample_image.png', 
     title = 'url to handwritten digit')
@@ -56,10 +56,7 @@ class ErrorResponse(BaseModel):
 
 app: FastAPI = FastAPI(
   title = 'mnist classifier',
-  description = 'corise data-centric deep learning week 3',
-)
-
-
+  description = 'corise data-centric deep learning week 3')
 @app.on_event("startup")
 async def startup_event():
   r"""Initialize FastAPI."""
@@ -70,12 +67,10 @@ async def startup_event():
 
   app.package = {'system': system}
 
-
 @app.post('/api/v1/predict',
   response_model = InferenceResponse,
-  responses = {
-    422: {'model': ErrorResponse},
-    500: {'model': ErrorResponse}})
+  responses = {422: {'model': ErrorResponse}, 500: {'model': ErrorResponse}})
+
 def predict(request: Request, body: InferenceInput):
   print('`/api/v1/predict` endpoint called.')
 
@@ -87,8 +82,7 @@ def predict(request: Request, body: InferenceInput):
 
   # add hacks to download images as a bot
   opener = urllib.request.build_opener()
-  opener.addheaders = [('User-Agent',
-    'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1941.0 Safari/537.36')]
+  opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1941.0 Safari/537.36')]
   urllib.request.install_opener(opener)
   # download locally: we assume that the image is already preprocessed.
   urllib.request.urlretrieve(body.image_url, local_path)
@@ -116,7 +110,8 @@ def predict(request: Request, body: InferenceInput):
 
     # ================================
     # FILL ME OUT
-    # 
+
+    logits = system.predict_step(im)
     # Use `system` to make a prediction on the input `im` and
     # save it to the variable `logits`. The output should be of
     # shape `(1, 10)`.
@@ -136,6 +131,7 @@ def predict(request: Request, body: InferenceInput):
     # ================================
 
     # To extract the label, just find the largest logit.
+
     label = torch.argmax(logits, dim=1)  # shape (1)
     label = label.item()                 # tensor -> integer
 
@@ -149,7 +145,7 @@ def predict(request: Request, body: InferenceInput):
     # 
     # Pseudocode:
     # --
-    # probs = ...do something to logits...
+    probs = F.softmax(logits, dim=1)
     # 
     # Types:
     # --
