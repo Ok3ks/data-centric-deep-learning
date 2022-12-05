@@ -66,8 +66,7 @@ class TrainBaseline(FlowSpec):
       monitor = 'dev_loss',
       mode = 'min',    # look for lowest `dev_loss`
       save_top_k = 1,  # save top 1 checkpoints
-      verbose = True,
-    )
+      verbose = True,)
 
     trainer = Trainer(
       max_epochs = config.train.optimizer.max_epochs,

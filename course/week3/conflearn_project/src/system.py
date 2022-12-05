@@ -97,7 +97,6 @@ class SentimentClassifierSystem(pl.LightningModule):
       num_correct = torch.sum(preds.squeeze(1) == labels)
       num_total = labels.size(0)
       accuracy = num_correct / float(num_total)
-
     return loss, accuracy
 
   def training_step(self, train_batch, batch_idx):

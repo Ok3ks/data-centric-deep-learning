@@ -135,7 +135,24 @@ class TrainIdentifyReview(FlowSpec):
       probs_ = None
       # ===============================================
       # FILL ME OUT
-      # 
+
+      train_loader = DataLoader(TensorDataset(torch.from_numpy(X[train_index]).float(), 
+                      torch.from_numpy(y[train_index]).float()), 
+                      batch_size = self.config.train.optimizer.batch_size, 
+                      shuffle= True)
+
+      test_loader = DataLoader(TensorDataset(torch.from_numpy(X[test_index]).float(), 
+                    torch.from_numpy(y[test_index]).float()),
+                    batch_size = self.config.train.optimizer.batch_size)
+
+      system = SentimentClassifierSystem(self.config)
+      trainer = Trainer(max_epochs=10)
+      
+      model = trainer.fit(self.system, train_loader)
+      probs_ = trainer.predict(system, dataloaders = test_loader)
+
+      probs_ = torch.cat(probs_).squeeze(1).numpy()
+
       # Fit a new `SentimentClassifierSystem` on the split of 
       # `X` and `y` defined by the current `train_index` and
       # `test_index`. Then, compute predicted probabilities on 
@@ -195,9 +212,8 @@ class TrainIdentifyReview(FlowSpec):
     prob = np.asarray(self.all_df.prob)
     prob = np.stack([1 - prob, prob]).T
   
-    # rank label indices by issues
-    ranked_label_issues = None
-    
+    # rank label issues by indices
+    ranked_label_issues = None  
     # =============================
     # FILL ME OUT
     # 
@@ -205,7 +221,13 @@ class TrainIdentifyReview(FlowSpec):
     # predicted probabilities. 
     # 
     # HINT: use cleanlab. See tutorial. 
-    # 
+
+    ranked_label_issues = find_label_issues(np.asarray(self.all_df.label),
+                           prob, filter_by= "", 
+                           return_indices_ranked_by = "self_confidence",
+                           rank_by_kwargs= {
+                            "adjust_pred_probs":True})
+
     # Our solution is one function call.
     # 
     # Types
@@ -216,7 +238,7 @@ class TrainIdentifyReview(FlowSpec):
 
     # save this to class
     self.issues = ranked_label_issues
-    print(f'{len(ranked_label_issues)} label issues found.')
+    print(f'{len(ranked_label_issues), len(prob)} label issues found.')
 
     # overwrite label for all the entries in all_df
     for index in self.issues:
@@ -261,8 +283,7 @@ class TrainIdentifyReview(FlowSpec):
       row = self.all_df.iloc[index]
       output = {
         'data': {
-          'text': str(row.review),
-        },
+          'text': str(row.review),},
         'predictions': [{
           'result': [
             {
@@ -291,6 +312,7 @@ class TrainIdentifyReview(FlowSpec):
   def retrain_retest(self):
     r"""Retrain without reviewing. Let's assume all the labels that 
     confidence learning suggested to flip are indeed erroneous."""
+
     dm = ReviewDataModule(self.config)
     train_size = len(dm.train_dataset)
     dev_size = len(dm.dev_dataset)
@@ -301,7 +323,11 @@ class TrainIdentifyReview(FlowSpec):
     # Overwrite the dataframe in each dataset with `all_df`. Make sure to 
     # select the right indices. Since `all_df` contains the corrected labels,
     # training on it will incorporate cleanlab's re-annotations.
-    # 
+    
+    dm.train_dataset.data = self.all_df.iloc[:train_size]
+    dm.dev_dataset.data = self.all_df.iloc[train_size:train_size + dev_size]
+    dm.test_dataset.data = self.all_df.iloc[dev_size+train_size:]
+
     # Pseudocode:
     # --
     # dm.train_dataset.data = training slice of self.all_df
@@ -311,10 +337,9 @@ class TrainIdentifyReview(FlowSpec):
 
     # start from scratch
     system = SentimentClassifierSystem(self.config)
-    trainer = Trainer(
-      max_epochs = self.config.train.optimizer.max_epochs)
+    trainer = Trainer(max_epochs = self.config.train.optimizer.max_epochs)
 
-    trainer.fit(system, dm)
+    trainer.fit(system,dm)
     trainer.test(system, dm, ckpt_path = 'best')
     results = system.test_results
 
