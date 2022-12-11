@@ -72,7 +72,16 @@ class JustTrainTwice(FlowSpec):
     # incorrect. We expect the variable `weights` to be a `torch.FloatTensor`
     # of the same size as `len(ds)`. The entries in `weights` are either 0 or 
     # 1 where the entry is 1 if the model is incorrect. 
-    # 
+
+    labels = ds.get_labels()
+    prob = self.trainer.predict(self.system, dataloaders = dl)
+    prob = torch.cat(prob).squeeze(dim=1)
+    pred = torch.round(prob).long().cpu().numpy()
+
+    labels = np.asarray(labels)
+    is_wrong = (pred != labels).astype(float)
+    weights = torch.FloatTensor(is_wrong)
+
     # Pseudocode:
     # --
     # Get predicted probabilities with `self.trainer` on the DataLoader `dl`.
@@ -133,15 +142,18 @@ class JustTrainTwice(FlowSpec):
     es_results = system.test_results
 
     acc_diff = None
+
+    acc_es = es_results['acc']
+    acc_en = en_results['acc']
+
     # =============================
     # FILL ME OUT
-    # 
     # Compute the difference in accuracy between two groups: 
     # english and spanish reviews. 
     # 
     # Pseudocode:
     # --
-    # acc_diff = |english accuracy - spanish accuracy|
+    acc_diff = abs(acc_es - acc_en)
     # 
     # Type:
     # --
@@ -172,7 +184,10 @@ class JustTrainTwice(FlowSpec):
     # Pseudocode:
     # --
     # Loop through inputs. Each input has a `acc_diff` param.
-    # 
+
+    results = [input.acc_diff for input in inputs]
+    index = np.argmin(results)
+
     # Type:
     # --
     # index: integer

@@ -6,6 +6,8 @@ from sklearn.isotonic import IsotonicRegression
 
 def get_ks_score(tr_probs, te_probs):
   score = None
+
+  _,score = ks_2samp(tr_probs.cpu().numpy(), te_probs.cpu().numpy())
   # ============================
   # FILL ME OUT
   # 
@@ -50,7 +52,17 @@ def get_hist_score(tr_probs, te_probs, bins=10):
   #   te_area = bin_diff * te_heights[i]
   #   intersect = min(tr_area, te_area)
   #   score = score + intersect
-  # 
+  tr_heights, tr_bins = np.histogram(tr_probs.cpu().numpy(), bins = bins, density = True)
+
+  te_heights, _ = np.histogram(te_probs.cpu().numpy(), bins = tr_bins, density = True)
+  score = 0
+
+  for i in range(len(tr_bins)-1 ):
+    bin_diff = tr_bins[i+1] - tr_bins[i]
+    area1 = bin_diff * tr_heights[i]
+    area2 = bin_diff * te_heights[i]
+    score += min(area1, area2)
+
   # Type:
   # --
   # tr_probs: torch.Tensor
@@ -96,8 +108,15 @@ def get_vocab_outlier(tr_vocab, te_vocab):
   #   Map from word to count for test examples
   # score: float (between 0 and 1)
   # ============================
+  num_unseen = 0
+  for word in te_vocab.keys():
+    if word in tr_vocab.keys():
+      pass
+    else: 
+      num_unseen += 1
+  
+  score = num_unseen/len(tr_vocab.keys())
   return score
-
 
 class MonitoringSystem:
 
@@ -121,7 +140,13 @@ class MonitoringSystem:
     #   See documentation for `out_of_bounds` description.
     # tr_probs_cal = fit calibration model
     # te_probs_cal = evaluate using fitted model
-    # 
+    
+    cal_model = IsotonicRegression(out_of_bounds="clip")
+    tr_probs_cal = cal_model.fit_transform(tr_probs.cpu().numpy(), tr_labels.cpu().numpy())
+    te_probs_cal = cal_model.transform(te_probs.cpu().numpy())
+    tr_probs_cal = torch.from_numpy(tr_probs_cal).float()
+    te_probs_cal = torch.from_numpy(te_probs_cal).float()
+     
     # Type:
     # --
     # `tr_probs_cal`: torch.Tensor. Note that sklearn

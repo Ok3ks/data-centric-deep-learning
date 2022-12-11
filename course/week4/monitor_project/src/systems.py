@@ -174,8 +174,8 @@ class RobustSentimentSystem(SentimentClassifierSystem):
     logits = self.model(embs)
 
     # compute loss per element (no reduction)
-    loss = F.binary_cross_entropy_with_logits(
-      logits.squeeze(1), labels.float(), reduction='none')
+    #loss = F.binary_cross_entropy_with_logits(
+      #logits.squeeze(1), labels.float(), reduction='none')
 
     # =================================
     # FILL ME OUT
@@ -193,7 +193,16 @@ class RobustSentimentSystem(SentimentClassifierSystem):
     # loss0 = mean of terms in `loss` belonging to group 0
     # loss1 = mean of terms in `loss` belonging to group 1
     # loss = max(loss0, loss1)
-    # 
+    loss0 = []
+    loss1 = []
+
+    loss0 = (F.binary_cross_entropy_with_logits(logits.squeeze(1)[groups == 0], labels.float()[groups == 0], reduction='none')).mean()
+    print(loss0)
+    loss1 = (F.binary_cross_entropy_with_logits(logits.squeeze(1)[groups == 1], labels.float()[groups == 1], reduction='none')).mean()
+    print(loss1)
+    
+    loss = max(loss0.mean(), loss1.mean())
+
     # Types:
     # --
     # loss0: torch.Tensor (length = # of group 0 elements in batch)

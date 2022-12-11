@@ -21,7 +21,7 @@ class ProductReviewEmbeddings(Dataset):
   def __init__(self, lang = 'en', split = 'train', weights = None):
     super().__init__()
     self.data = pd.read_csv(join(DATA_DIR, lang, f'{split}.csv'))
-    self.embedding = torch.load(join(DATA_DIR, lang, f'{split}.pt'))
+    self.embedding = torch.load(join(DATA_DIR, lang, f'{split}.pt'), map_location= "cpu")
     if weights is None:
       weights = torch.ones(self.embedding.size(0))
     assert len(weights) == len(self.embedding)
@@ -31,6 +31,12 @@ class ProductReviewEmbeddings(Dataset):
 
   def get_vocab(self):
     vocab = defaultdict(lambda: 0)
+
+    for review in self.data.review:
+      words = review.split()
+      for word in words:
+        vocab[word] += 1
+
     # ===============================
     # FILL ME OUT
     # 
@@ -89,11 +95,17 @@ class ProductReviewStream(Dataset):
     super().__init__()
     assert index in range(1, 9), f"Invalid index: {index}"
     self.data = pd.read_csv(join(DATA_DIR, 'stream', f'stream{index}.csv'))
-    self.embedding = torch.load(join(DATA_DIR, 'stream', f'stream{index}.pt'))
+    self.embedding = torch.load(join(DATA_DIR, 'stream', f'stream{index}.pt'), map_location= "cpu")
 
   def get_vocab(self):
     # `defaultdict` can be a helpful utility
     vocab = defaultdict(lambda: 0)
+
+    for review in self.data.review:
+      words = review.split()
+      for word in words:
+        vocab[word] += 1
+        
     # ===============================
     # FILL ME OUT
     # 
